@@ -1,12 +1,8 @@
-ARG ELIXIR_IMG=hexpm/elixir
-ARG ELIXIR_VER=1.11.4
-ARG ERLANG_VER=24.2.1
-ARG ALPINE_VER=3.17.0
+FROM elixir:1.11.4-alpine
 
-FROM ${ELIXIR_IMG}:${ELIXIR_VER}-erlang-${ERLANG_VER}-alpine-${ALPINE_VER} as build
-
-COPY . .
-
+ARG PLEROMA_VER=develop
+ARG UID=911
+ARG GID=911
 ENV MIX_ENV=prod
 
 RUN apk add git gcc g++ musl-dev make cmake file-dev &&\
