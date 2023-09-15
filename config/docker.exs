@@ -1,16 +1,24 @@
 import Config
 
 config :pleroma, Pleroma.Web.Endpoint,
-  url: [host: System.get_env("DOMAIN", "localhost"), scheme: "https", port: 443],
+  url: [host: System.get_env("DOMAINWEB", "pleroma.moeyy.cn"), scheme: "https", port: 443],
   http: [ip: {0, 0, 0, 0}, port: 4000]
 
+config :pleroma, Pleroma.Web.WebFinger, domain: System.get_env("DOMAIN", "moeyy.cn")
+
 config :pleroma, :instance,
-  name: System.get_env("INSTANCE_NAME", "Pleroma"),
+  name: System.get_env("INSTANCE_NAME", "Moeyy"),
   email: System.get_env("ADMIN_EMAIL"),
   notify_email: System.get_env("NOTIFY_EMAIL"),
   limit: 5000,
-  registrations_open: false,
+  registrations_open: true,
+  federating: true,
   healthcheck: true
+
+config :pleroma, :media_proxy,
+  enabled: false,
+  redirect_on_failure: true,
+  base_url: "https://cache.domain.tld"
 
 config :pleroma, Pleroma.Repo,
   adapter: Ecto.Adapters.Postgres,
@@ -19,7 +27,28 @@ config :pleroma, Pleroma.Repo,
   database: System.get_env("DB_NAME", "pleroma"),
   hostname: System.get_env("DB_HOST", "db"),
   port: System.get_env("DB_PORT", "5432"),
-  pool_size: 10
+  pool_size: 10,
+  ssl: true,
+  ssl_opts: [
+    cacertfile: "/etc/ssl/certs/ca-certificates.crt",
+    verify: :verify_none,
+    #verify: :verify_peer,
+    server_name_indication: to_charlist(System.get_env("DB_HOST", "db")),
+    customize_hostname_check: [
+      # By default, Erlang does not support wildcard certificates. This function supports validating wildcard hosts
+      match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+    ]
+  ]
+
+config :pleroma, Pleroma.Emails.Mailer,
+  enabled: true,
+  adapter: Swoosh.Adapters.SMTP,
+  relay: "smtp.qiye.aliyun.com",
+  username: System.get_env("MAIL_USER", "1"),
+  password: System.get_env("MAIL_PASS", "1"),
+  port: 465,
+  ssl: true,
+  auth: :always
 
 # Configure web push notifications
 config :web_push_encryption, :vapid_details, subject: "mailto:#{System.get_env("NOTIFY_EMAIL")}"
